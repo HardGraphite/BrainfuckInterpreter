@@ -6,8 +6,8 @@ TARGET = bf
 
 export BF_INTERPRETER = ${TARGET}
 
-CFLAGS += -g
-# CFLAGS += -O3 -s -D_NDEBUG
+# CFLAGS += -g
+CFLAGS += -O3 -s -D_NDEBUG
 
 all: ${TARGET}
 

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 
 #include "iostream.h"
@@ -28,8 +29,6 @@ static int compile(bf_program_t * program, const char * filename)
 
 static void execute(bf_program_t * program, bf_memory_t * memory)
 {
-    const char * lb = NULL, * rb = NULL; // '[', ']'
-
     while (1)
     {
         char instr = bf_prog_get(program);
@@ -64,42 +63,13 @@ static void execute(bf_program_t * program, bf_memory_t * memory)
             break;
 
         case _BF_i_jbz:
-            lb = bf_prog_pos(program);
             if (!bf_mem_read(memory))
-            {
-                if (rb != NULL)
-                {
-                    bf_prog_jump(program, rb + 1);
-                    rb = NULL;
-                }
-                else
-                {
-                    while (1)
-                    {
-                        char x = bf_prog_get(program);
-                        if (x == _BF_i_jfnz)
-                            break;
-                        else if (x == _BF_i_halt)
-                            bf_print_message(2, "unexpected '[' instruction, "
-                                "can't find a previous ']'");
-                    }
-                }
-            }
+                bf_prog_jumpb(program);
             break;
 
         case _BF_i_jfnz:
             if (bf_mem_read(memory))
-            {
-                if (lb != NULL)
-                {
-                    bf_prog_jump(program, lb + 1);
-                }
-                else
-                {
-                    bf_print_message(2,
-                        "unexpected ']' instruction, can't find a previous '['");
-                }
-            }
+                bf_prog_jumpf(program);
             break;
 
         default:

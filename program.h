@@ -160,11 +160,11 @@ _BF_INLINE int bf_prog_compile(bf_program_t * prog, FILE * source_code)
                                 break;
                         }
                     else
-                        bf_print_message(1, "unexpected characters '/%c'", ch);
+                        ; // bf_print_message(1, "unexpected characters '/%c'", ch);
                 }
                 else
                 {
-                    bf_print_message(1, "unexpected character '%c'", ch);
+                    // bf_print_message(1, "unexpected character '%c'", ch);
                 }
                 break;
         }
@@ -211,4 +211,94 @@ _BF_INLINE const char * bf_prog_pos(bf_program_t * prog)
 _BF_INLINE void bf_prog_jump(bf_program_t * prog, const char * p)
 {
     prog->current = p;
+}
+
+/**
+ * @brief Jump to previous `bf_i_jbz`.
+ *
+ * @param prog pointer to a bf_progory
+ */
+_BF_INLINE void bf_prog_jumpf(bf_program_t * prog)
+{
+    const char * const begin = prog->_code;
+    const char *       ip    = prog->current;
+
+    int counter = 0;
+
+    while (1)
+    {
+        if (ip < begin)
+        {
+            bf_print_message(2, "can't find previous '['");
+            exit(1);
+        }
+
+        switch (*ip)
+        {
+        case _BF_i_jbz:
+            counter++;
+            if (counter >= 0)
+            {
+                prog->current = ip + 1;
+                return;
+            }
+            break;
+
+        case _BF_i_jfnz:
+            counter--;
+            break;
+
+        default:
+            break;
+        }
+
+        ip--;
+    }
+}
+
+/**
+ * @brief Jump to next `bf_i_jfnz`.
+ *
+ * @param prog pointer to a bf_progory
+ */
+_BF_INLINE void bf_prog_jumpb(bf_program_t * prog)
+{
+    const char * const begin = prog->_code;
+    const char *       ip    = prog->current;
+
+    int counter = 0;
+
+    while (1)
+    {
+        if (ip < begin)
+        {
+            _NOT_FOUND:
+            bf_print_message(2, "can't find next ']'");
+            exit(1);
+        }
+
+        switch (*ip)
+        {
+        case _BF_i_halt:
+            goto _NOT_FOUND;
+
+        case _BF_i_jbz:
+            counter++;
+            break;
+
+        case _BF_i_jfnz:
+            counter--;
+            if (counter <= 0)
+            {
+                prog->current = ip + 1;
+                return;
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        ip++;
+    }
 }
